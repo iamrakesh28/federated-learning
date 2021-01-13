@@ -13,7 +13,7 @@ class Sender:
 
     def send(self, **kwargs):
         """
-        Make GET or POST request with json data
+        Make GET or POST request with dictionary data
         By default, makes a GET request
         """
 
@@ -21,12 +21,13 @@ class Sender:
         if data is None:
             # 'No data to send!!!'
             return
-        
-        
+
+        # self.post or self.get produces error
+        # Use class name instead
         if kwargs.get('request') == 'post':
-            self.resp = post(self.addr, data=data)
+            self.resp = Sender.post(self.addr, data=data)
         else:
-            self.resp = get(self.addr, params=data)
+            self.resp = Sender.get(self.addr, params=data)
 
         return
 
@@ -36,9 +37,17 @@ class Sender:
         None if previous request was unsuccessful
         """
         if self.resp is not None:
-            return self.status_code
+            return self.resp.status_code
 
         return None
 
+    def get_resp_text(self):
+        """
+        Returns the last request content
+        None if previous request was unsuccessful
+        """
+        if self.resp is not None:
+            return self.resp.text
         
-            
+        return None
+    
