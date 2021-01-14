@@ -11,7 +11,7 @@ class Client:
     def __init__(self, addr):
         self.sender = Sender(addr)
         self.model = utility.getNewModel()
-        self.RETRY = 5
+        self.MAX_RETRY = 5
         self.MAX_WAIT = 5
         self._id = 'iamrakesh28'
         self.dataset = 0
@@ -46,14 +46,18 @@ class Client:
         return success
             
     def __request_model(self):
-
+        """
+        Gets the updated weights from the server
+        It tries MAX_RETRY times till it succesfully gets
+        """
+        
         nos_retry = 0
         data = {
-            'id' : self_id,
+            'id' : self._id,
             'send' : False
         }
         
-        while nos_retry < RETRY:
+        while nos_retry < self.MAX_RETRY:
 
             print("Trying to get the server model weights!")
             success = self.sender.send(data=data, request='post')
@@ -74,16 +78,20 @@ class Client:
         return
 
     def __send_model(self):
+        """
+        Sends the updated weights to the server
+        It tries MAX_RETRY times till it succesfully sends
+        """
 
         nos_retry = 0
         data = {
-            'id' : self_id,
+            'id' : self._id,
             'send' : True,
             'dataset' : self.dataset
             'weight' : dumps(self.weight)
         }
         
-        while nos_retry < RETRY:
+        while nos_retry < self.MAX_RETRY:
 
             print("Trying to send newly updated model weights!")
             success = self.sender.send(data=data, request='post')
@@ -103,8 +111,36 @@ class Client:
         # Continue with the previous version model
         return
 
+    def __train_model(self, train_data):
+        """
+        Trains on the train_data and 
+        updates the dataset count and weight 
+        @param train_data training dataset
+        """
+        print("Training on the dataset")
+        utility.trainOnData(self.model, train_data)
+        self.dataset += train_data[0].shape[0]
+        self.weight = self.model.get_weight()
+        print("Training done and variables updated")
+        
+        retrun
+        
+    def run(self, dataset):
+        """
+        Runs the client on the list of datasets
+        @param dataset list of (X, Y) training data
+        """
+        for X, Y in datset:
+            print("Training on next dataset")
+            self.__request_model()
+            self.__train_model()
+            self.__send_model()
+
+        print("Training done, exiting!")
+
     
 def main():
+    
     send_obj = Sender('http://127.0.0.1:5000')
     data = {'id' : 2, 'list' : json.dumps([4, 3, 5])}
     print(send_obj.send(data=data, request='post'))
