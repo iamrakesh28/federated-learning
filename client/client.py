@@ -48,7 +48,10 @@ class Client:
     def __request_model(self):
 
         nos_retry = 0
-        data = {'id' : self_id, 'send' : False}
+        data = {
+            'id' : self_id,
+            'send' : False
+        }
         
         while nos_retry < RETRY:
 
@@ -71,6 +74,34 @@ class Client:
         return
 
     def __send_model(self):
+
+        nos_retry = 0
+        data = {
+            'id' : self_id,
+            'send' : True,
+            'dataset' : self.dataset
+            'weight' : dumps(self.weight)
+        }
+        
+        while nos_retry < RETRY:
+
+            print("Trying to send newly updated model weights!")
+            success = self.sender.send(data=data, request='post')
+
+            if success and self.__validate_data():
+                # Successfully got the weights
+                print("Successfully sent the weights")
+                return
+
+            print("Failed to send the weights!")
+
+            # Try more if possible but wait for few seconds
+            nos_retry += 1
+            sleep(randint(0, self.MAX_WAIT))
+
+        # Couldn't send the updated model weights to the server
+        # Continue with the previous version model
+        return
 
     
 def main():
