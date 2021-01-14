@@ -1,4 +1,5 @@
-import json
+from json import loads, dumps
+from numpy import array, float32
 
 def arrays_tolist(array_list):
     """
@@ -20,10 +21,35 @@ def json_encoder(data):
     @data python standard data structure
     @return json encoded string
     """
-    return json.dumps(data)
+    return dumps(data)
+
+
+def lists_toarray(lists):
+    """
+    Convert the list of lists to list of numpy arrays
+    Datatype is float32 as this is datatype in the tensorflow Sequential model
+    It converts the lists in place
+    
+    @param lists list of lists 
+    """
+
+    for i in range(len(lists)):
+        lists[i] = array(lists[i], float32)
+
+    return
+
+def json_decoder(data):
+    """
+    Decodes back the json data to python data structure
+    
+    @data json encoded string
+    @return python standard data structure
+    """
+    return loads(data)
+
 
 """
-Used for testing...
+# Used for testing...
 def test():
     import numpy
     
@@ -37,6 +63,13 @@ def test():
     json_str = json_encoder(lst)
     print(json_str, type(json_str))
 
+    lists_toarray(lst)
+    print(lst)
+    decoded_str = json_decoder(json_str)
+    print(decoded_str, type(decoded_str))
+
+
 if __name__ == "__main__":
     test()
+
 """
