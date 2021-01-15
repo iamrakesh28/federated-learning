@@ -1,4 +1,5 @@
 import utility
+import helper
 from json import dumps, loads
 from threading import Lock
 
@@ -10,6 +11,7 @@ class Server:
         self.model = utility.getNewModel()
         self.datasets = 0
         self.weights = self.model.get_weights()
+        self.weight_send = helper.arrays_tolist(self.weights)
         self.lock = Lock
 
         def __update(self, weights, datasets):
@@ -19,11 +21,12 @@ class Server:
             """
             self.lock.acquire()
 
-            utility.update_param(
+            self.weights = utility.update_param(
                 (self.weights, self.datasets),
                 (weights, datasets)
-                )
-            
+            )
+
+            self.weight_send = helper.arrays_tolist(self.weights)
             self.datasets += datasets
             self.lock.release()
             
@@ -63,11 +66,10 @@ class Server:
         """
         """
         self.lock.acquire()
-        weights_list = utility.arrays_tolist(self.weights)
         data = {
             'id' : self.server_id,
             'datasets' : self.datasets,
-            'weights' : self.weights
+            'weights' : self.weight_send
         }
         self.lock.release()
         
