@@ -1,66 +1,68 @@
 import utility
 import helper
 from json import dumps, loads
+from pickle import dump
 from threading import Lock
 
 class Server:
     """
     """
-    def __init__(self, server_id):
+    def __init__(self, server_id, filename):
         self.server_id = server_id
         self.model = utility.getNewModel()
         self.datasets = 0
         self.weights = self.model.get_weights()
         self.weight_send = helper.arrays_tolist(self.weights)
-        self.lock = Lock
+        self.lock = Lock()
+        self.filename = filename
 
-        def __update(self, weights, datasets):
-            """
-            Updates the weight and dataset count
-            It's thread safe
-            """
-            self.lock.acquire()
+    def __update(self, weights, datasets):
+        """
+        Updates the weight and dataset count
+        It's thread safe
+        """
+        self.lock.acquire()
+        
+        self.weights = utility.averageParam(
+            (self.weights, self.datasets),
+            (weights, datasets)
+        )
+        
+        self.weight_send = helper.arrays_tolist(self.weights)
+        self.datasets += datasets
+        self.lock.release()
 
-            self.weights = utility.update_param(
-                (self.weights, self.datasets),
-                (weights, datasets)
+        return
+            
+    def validate_update_data(self, data):
+        
+        try:
+            datasets = data.get('datasets')
+            assert(type(datasets) == int and datasets > 0)
+
+            updated_weight_list = loads(data.get('weights'))
+            updated_weight = helper.lists_toarray(updated_weight_list)
+
+            assert(
+                type(self.weights) == type(updated_weight)
+                and len(self.weights) == len(updated_weight)
             )
 
-            self.weight_send = helper.arrays_tolist(self.weights)
-            self.datasets += datasets
-            self.lock.release()
-            
-        def __validate_update_data(self, data):
-
-            try:
-                datasets = data.get('datasets')
-                assert(type(datasets) == int)
-                
-                updated_weight_list = loads(data.get('weights'))
-                updated_weight = utility.list_toarrays(updated_weight_list)
-                
+            for i in range(len(self.weights)):
                 assert(
-                    type(self.weight) == type(updated_weight)
-                    && len(self.weight) == len(updated_weight)
+                    type(self.weights[i]) == type(updated_weight[i])
+                    and self.weights[i].shape == updated_weight[i].shape
                 )
-
-                for in range(len(self.weight)):
-                    assert(
-                        type(self.weight[i]) == type(updated_weight[i])
-                        && self.weight[i].shape == updated_weight[i].shape
-                    )
                     
-            except:
-                print("Error in validating the data!")
-                return
-
-            # everything looks fine, update the data
-            self.__update(updated_weight, datasets)
-
-            return
-
         except:
-            print("Error in validating the model weights!")
+            print("Error in validating the data!")
+            return
+            
+        # everything looks fine, update the data
+        self.__update(updated_weight, datasets)
+        
+        return
+        
             
     def read_weights(self):
         """
@@ -74,4 +76,15 @@ class Server:
         self.lock.release()
         
         return data
-        
+
+    def save_model(self):
+
+        self.lock.acquire()
+        fp = open(self.filename, 'wb')
+        data = {
+            'datasets' : self.datasets,
+            'weights' : self.weight_send
+        }
+        pickle.dump(data, fp)
+        fp.close()
+        self.lock.release()
