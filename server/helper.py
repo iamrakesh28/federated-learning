@@ -21,7 +21,6 @@ def lists_toarray(lists):
     
     @param lists list of lists 
     """
-
     new_list = []
     for i in range(len(lists)):
         new_list.append(array(lists[i], float32))
