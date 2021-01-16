@@ -24,6 +24,6 @@ def lists_toarray(lists):
 
     new_list = []
     for i in range(len(lists)):
-        new_list.append(array(lists[i], float32))
+        new_list.append(array(lists[i], dtype=float32))
 
     return new_list
