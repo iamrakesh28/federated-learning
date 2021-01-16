@@ -1,9 +1,12 @@
 from tensorflow.keras import Sequential
 from tensorflow.keras.layers import Flatten, Dense, Activation
+from tensorflow.keras.optimizers import Adam
+from tensorflow.keras.losses import SparseCategoricalCrossentropy
+from tensorflow.keras.metrics import SparseCategoricalAccuracy
 
 # Constants
 
-NUM_IMAGES_TRAIN = 5000
+NUM_IMAGES_TRAIN = 50
 NUM_CLASSES = 10
 IMAGE_SHAPE = (28, 28)
 
@@ -48,9 +51,9 @@ def trainOnData(model, trainData):
     '''
 
     model.compile(
-        optimizer=tf.keras.optimizers.Adam(0.001),
-        loss=tf.keras.losses.SparseCategoricalCrossentropy(),
-        metrics=[tf.keras.metrics.SparseCategoricalAccuracy()],
+        optimizer=Adam(0.001),
+        loss=SparseCategoricalCrossentropy(),
+        metrics=[SparseCategoricalAccuracy()],
     )
 
     (X, y) = trainData
@@ -58,5 +61,5 @@ def trainOnData(model, trainData):
     model.fit(
         X,
         y,
-        epochs=20
+        epochs=1
     )
