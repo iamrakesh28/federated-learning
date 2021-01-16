@@ -1,19 +1,20 @@
-#import utility
+import utility
+import helper
 from random import randint
 from sender import Sender
 from json import loads, dumps
 from time import sleep
 
+MAX_RETRY = 2
+MAX_WAIT = 2
 
 class Client:
     """
     """
-    def __init__(self, addr):
+    def __init__(self, addr, client_id):
         self.sender = Sender(addr)
         self.model = utility.getNewModel()
-        self.MAX_RETRY = 5
-        self.MAX_WAIT = 5
-        self._id = 'iamrakesh28'
+        self.client_id = client_id
         self.dataset = 0
         self.weight = self.model.get_weights()
 
@@ -22,16 +23,16 @@ class Client:
         success = False
         try:
             data = loads(self.sender.get_resp_text())
-            updated_weight = data.get('weight')
+            updated_weight = helper.lists_toarray(data.get('weight'))
             assert(
                 type(self.weight) == type(updated_weight)
-                && len(self.weight) == len(updated_weight)
+                and len(self.weight) == len(updated_weight)
             )
 
             for in range(len(self.weight)):
                 assert(
                     type(self.weight[i]) == type(updated_weight[i])
-                    && self.weight[i].shape == updated_weight[i].shape
+                    and self.weight[i].shape == updated_weight[i].shape
                 )
 
             
@@ -53,11 +54,11 @@ class Client:
         
         nos_retry = 0
         data = {
-            'id' : self._id,
+            'id' : self.client_id,
             'send' : False
         }
         
-        while nos_retry < self.MAX_RETRY:
+        while nos_retry < MAX_RETRY:
 
             print("Trying to get the server model weights!")
             success = self.sender.send(data=data, request='post')
@@ -71,7 +72,7 @@ class Client:
 
             # Try more if possible but wait for few seconds
             nos_retry += 1
-            sleep(randint(0, self.MAX_WAIT))
+            sleep(randint(0, MAX_WAIT))
 
         # Couldn't get the updated model from the server
         # Continue with the previous version model
@@ -85,13 +86,13 @@ class Client:
 
         nos_retry = 0
         data = {
-            'id' : self._id,
+            'id' : client_id,
             'send' : True,
             'dataset' : self.dataset
             'weight' : dumps(self.weight)
         }
         
-        while nos_retry < self.MAX_RETRY:
+        while nos_retry < MAX_RETRY:
 
             print("Trying to send newly updated model weights!")
             success = self.sender.send(data=data, request='post')
@@ -105,7 +106,7 @@ class Client:
 
             # Try more if possible but wait for few seconds
             nos_retry += 1
-            sleep(randint(0, self.MAX_WAIT))
+            sleep(randint(0, MAX_WAIT))
 
         # Couldn't send the updated model weights to the server
         # Continue with the previous version model
@@ -118,22 +119,24 @@ class Client:
         @param train_data training dataset
         """
         print("Training on the dataset")
+        
         utility.trainOnData(self.model, train_data)
         self.dataset += train_data[0].shape[0]
         self.weight = self.model.get_weight()
+        
         print("Training done and variables updated")
         
-        retrun
+        return
         
     def run(self, dataset):
         """
         Runs the client on the list of datasets
         @param dataset list of (X, Y) training data
         """
-        for X, Y in datset:
+        for X, Y in dataset:
             print("Training on next dataset")
             self.__request_model()
-            self.__train_model()
+            self.__train_model(X, Y)
             self.__send_model()
 
         print("Training done, exiting!")
