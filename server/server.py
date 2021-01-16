@@ -9,7 +9,7 @@ SAVE_MODEL = 2
 class Server:
     """
     """
-    def __init__(self, server_id, filename):
+    def __init__(self, server_id, filename, logger):
         self.server_id = server_id
         self.model = utility.getNewModel()
         self.datasets = 0
@@ -18,6 +18,7 @@ class Server:
         self.lock = Lock()
         self.filename = filename
         self.save = SAVE_MODEL
+        self.logger = logger
 
     def __update(self, weights, datasets):
         """
@@ -45,11 +46,11 @@ class Server:
         return
             
     def validate_update_data(self, data):
-        
-        try:
-            datasets = data.get('datasets')
-            assert(type(datasets) == int and datasets > 0)
 
+        try:
+            datasets = int(data.get('datasets'))
+            assert(datasets > 0)
+            
             updated_weight_list = loads(data.get('weights'))
             updated_weight = helper.lists_toarray(updated_weight_list)
 
@@ -65,11 +66,12 @@ class Server:
                 )
                     
         except:
-            print("Error in validating the data!")
+            self.logger.error("Error in validating the data!")
             return
-            
+
         # everything looks fine, update the data
         self.__update(updated_weight, datasets)
+        self.logger.info("Successfully updated the model")
         
         return
         
@@ -84,7 +86,7 @@ class Server:
             'weights' : self.weight_send
         }
         self.lock.release()
-        
+                
         return data
 
     def __save_model(self):
@@ -96,3 +98,5 @@ class Server:
         }
         pickle.dump(data, fp)
         fp.close()
+
+        self.logger.info("Successfully saved the model")
