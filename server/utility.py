@@ -3,7 +3,7 @@ from tensorflow.keras.layers import Flatten, Dense, Activation
 
 # Constants
 
-NUM_IMAGES_TRAIN = 5000
+NUM_IMAGES_TRAIN = 50
 NUM_CLASSES = 10
 IMAGE_SHAPE = (28, 28)
 
@@ -60,7 +60,7 @@ def averageParam(oldParam, newParam):
     newMult = float(newParam[1])
 
     avgWeights = []
-    for i in range(len(oldParam)):
+    for i in range(len(oldParam[0])):
         oldWeight = oldParam[0][i]
         newWeight = newParam[0][i]
         avgWeights.append(
