@@ -43,6 +43,7 @@ class Client:
             # everything looks fine, update the weight
             self.datasets = datasets
             self.weights = updated_weight
+            self.model.set_weights(updated_weight)
 
             success = True
 
