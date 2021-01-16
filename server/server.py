@@ -1,8 +1,10 @@
 import utility
 import helper
+import pickle
 from json import dumps, loads
-from pickle import dump
 from threading import Lock
+
+SAVE_MODEL = 2
 
 class Server:
     """
@@ -15,6 +17,7 @@ class Server:
         self.weight_send = helper.arrays_tolist(self.weights)
         self.lock = Lock()
         self.filename = filename
+        self.save = SAVE_MODEL
 
     def __update(self, weights, datasets):
         """
@@ -30,6 +33,13 @@ class Server:
         
         self.weight_send = helper.arrays_tolist(self.weights)
         self.datasets += datasets
+
+        if self.save == 0:
+            self.__save_model()
+            self.save = SAVE_MODEL
+        else:
+            self.save -= 1
+            
         self.lock.release()
 
         return
@@ -77,9 +87,8 @@ class Server:
         
         return data
 
-    def save_model(self):
+    def __save_model(self):
 
-        self.lock.acquire()
         fp = open(self.filename, 'wb')
         data = {
             'datasets' : self.datasets,
@@ -87,4 +96,3 @@ class Server:
         }
         pickle.dump(data, fp)
         fp.close()
-        self.lock.release()
