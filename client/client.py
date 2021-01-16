@@ -15,30 +15,35 @@ class Client:
         self.sender = Sender(addr)
         self.model = utility.getNewModel()
         self.client_id = client_id
-        self.dataset = 0
-        self.weight = self.model.get_weights()
+        self.datasets = 0
+        self.weights = self.model.get_weights()
 
     def __validate_data(self):
 
         success = False
         try:
             data = loads(self.sender.get_resp_text())
-            updated_weight = helper.lists_toarray(data.get('weight'))
+
+            datasets = data.get('datasets')
+            assert(type(datasets) == int and datasets >= 0)
+
+            updated_weight = helper.lists_toarray(data.get('weights'))
             assert(
-                type(self.weight) == type(updated_weight)
-                and len(self.weight) == len(updated_weight)
+                type(self.weights) == type(updated_weight)
+                and len(self.weights) == len(updated_weight)
             )
 
-            for in range(len(self.weight)):
+            for i in range(len(self.weights)):
                 assert(
-                    type(self.weight[i]) == type(updated_weight[i])
-                    and self.weight[i].shape == updated_weight[i].shape
+                    type(self.weights[i]) == type(updated_weight[i])
+                    and self.weights[i].shape == updated_weight[i].shape
                 )
 
             
             # everything looks fine, update the weight
-            self.dataset = data['dataset']
-            self.weight = updated_weight
+            self.datasets = datasets
+            self.weights = updated_weight
+
             success = True
 
         except:
@@ -72,7 +77,11 @@ class Client:
 
             # Try more if possible but wait for few seconds
             nos_retry += 1
-            sleep(randint(0, MAX_WAIT))
+
+            if nos_retry < MAX_RETRY:
+                sleep_time = randint(0, MAX_WAIT)
+                print("Trying again in", sleep_time, "s")
+                sleep(sleep_time)
 
         # Couldn't get the updated model from the server
         # Continue with the previous version model
@@ -86,10 +95,10 @@ class Client:
 
         nos_retry = 0
         data = {
-            'id' : client_id,
+            'id' : self.client_id,
             'send' : True,
-            'dataset' : self.dataset
-            'weight' : dumps(self.weight)
+            'datasets' : self.datasets,
+            'weights' : dumps(helper.arrays_tolist(self.weights))
         }
         
         while nos_retry < MAX_RETRY:
@@ -97,7 +106,7 @@ class Client:
             print("Trying to send newly updated model weights!")
             success = self.sender.send(data=data, request='post')
 
-            if success and self.__validate_data():
+            if success:
                 # Successfully got the weights
                 print("Successfully sent the weights")
                 return
@@ -106,7 +115,11 @@ class Client:
 
             # Try more if possible but wait for few seconds
             nos_retry += 1
-            sleep(randint(0, MAX_WAIT))
+            
+            if nos_retry < MAX_RETRY:
+                sleep_time = randint(0, MAX_WAIT)
+                print("Trying again in", sleep_time, "s")
+                sleep(sleep_time)
 
         # Couldn't send the updated model weights to the server
         # Continue with the previous version model
@@ -121,8 +134,8 @@ class Client:
         print("Training on the dataset")
         
         utility.trainOnData(self.model, train_data)
-        self.dataset += train_data[0].shape[0]
-        self.weight = self.model.get_weight()
+        self.datasets += train_data[0].shape[0]
+        self.weights = self.model.get_weights()
         
         print("Training done and variables updated")
         
@@ -133,31 +146,11 @@ class Client:
         Runs the client on the list of datasets
         @param dataset list of (X, Y) training data
         """
+
         for X, Y in dataset:
             print("Training on next dataset")
             self.__request_model()
-            self.__train_model(X, Y)
+            self.__train_model((X, Y))
             self.__send_model()
 
         print("Training done, exiting!")
-
-    
-def main():
-    
-    send_obj = Sender('http://127.0.0.1:5000')
-    data = {'id' : 2, 'list' : json.dumps([4, 3, 5])}
-    print(send_obj.send(data=data, request='post'))
-    obj = json.loads(send_obj.get_resp_text())
-    print(obj, type(obj), type(obj['list']))
-    """
-    t = 1
-    while t > 0:
-        print(send_obj.send(data=data, request='get'))
-        print(send_obj.get_resp_text())
-        print(send_obj.get_resp_status())
-        t -= 1
-    """
-
-    
-if __name__ == "__main__":
-    main()
