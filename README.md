@@ -44,18 +44,18 @@ For the datasets, provide two space separated integers between `1` and `12` (inc
 ## Working
 ### Client
 In each iteration, the client takes the `NUM_IMAGES_TRAIN` size samples and does the following steps:
-* Makes a request from the server to get the updated model weights. It makes `MAX_RETRY` atmost requests to the server. If the server fails (or the server is down) to send the correct data, the client continues to the next step with the previously updated weights. Between each two request, it waits randomly between `0` to `MAX_WAIT` (defined in `client/client.py`) seconds.
+* Makes a request from the server to get the updated model weights. It makes atmost `MAX_RETRY` requests to the server. If the server fails (or the server is down) to send the correct data, the client continues to the next step with the previously updated weights. Between each two request, it waits randomly between `0` to `MAX_WAIT` (defined in `client/client.py`) seconds.
 * After the client has got the updated weights, it trains on the data and updates the model weights.
-* It tries to send the updated weights to the server. Similarly, as in the case of mmaking the request, it makes `MAX_RETRY` atmost requests to the server. If the client fails to send the data, the client continues to the next iteration and since the weights has not been sent, it skips the first step and continues with the training. Between each two request, it waits randomly between `0` to `MAX_WAIT` (defined in `client/client.py`) seconds.
+* It tries to send the updated weights to the server. Similarly, as in the case of making the request, it makes atmost `MAX_RETRY` requests to the server. If the client fails to send the data, the client continues to the next iteration and since the weights has not been sent, it skips the first step and continues with the training. Between each two request, it waits randomly between `0` to `MAX_WAIT` (defined in `client/client.py`) seconds.
 
 ### Server
 The server keeps running. For each new request, it spawns a new thread to handle the request. It accepts only GET and POST requests. There are two types of requests:
 1. Sending the updated model weights
 2. Receiving the trained model weights from the clients
 
-Server does a weighted average of the received model weights from the clients. Clients also send the number of datasets on which their model has been trained in total. The server does the weighted average of their weights and the client weights and updated the weights at the server. If the server's model has been trained on `a` datasets and the client's model on `b` datasets, then weighted average is `(a x server_weights + b x client_weights) / (a + b)`. It's a hypothesis but works well in practice. The server saves the model weights after every `SAVE_MODEL` (defined in `server/server.py`) updates in `model` file.
+Server does a weighted average of the received model weights from the clients. Clients also send the number of datasets on which their model has been trained in total. The server does the weighted average of their weights and the client weights and updates the weights at the server. If the server's model has been trained on `a` datasets and the client's model on `b` datasets, then weighted average is `(a x server_weights + b x client_weights) / (a + b)`. It's a hypothesis but works well in practice. The server saves the model weights after every `SAVE_MODEL` (defined in `server/server.py`) updates in `server/model` file.
 
-Also, there could be multiple reader as well as writer threads at the server. In the version 1.0 of the application, it handles single read or write. In current version, it supports multiple readers simultaneously. 
+Also, there could be multiple readers as well as writer threads at the server. In the version 1.0 of the application, it handles single read or write at a time. In current version, it can support multiple readers simultaneously. 
 
 ### Testing
 To test the model on the training set,
