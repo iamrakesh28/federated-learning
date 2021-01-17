@@ -3,7 +3,7 @@ from tensorflow.keras.layers import Flatten, Dense, Activation
 
 # Constants
 
-NUM_IMAGES_TRAIN = 50
+NUM_IMAGES_TRAIN = 5000
 NUM_CLASSES = 10
 IMAGE_SHAPE = (28, 28)
 
