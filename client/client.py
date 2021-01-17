@@ -17,6 +17,7 @@ class Client:
         self.client_id = client_id
         self.datasets = 0
         self.weights = self.model.get_weights()
+        self.sent = True
 
     def __validate_data(self):
 
@@ -101,7 +102,8 @@ class Client:
             'datasets' : self.datasets,
             'weights' : dumps(helper.arrays_tolist(self.weights))
         }
-        
+
+        self.sent = False
         while nos_retry < MAX_RETRY:
 
             print("Trying to send newly updated model weights!")
@@ -109,6 +111,7 @@ class Client:
 
             if success:
                 # Successfully got the weights
+                self.sent = True
                 print("Successfully sent the weights")
                 return
 
@@ -150,7 +153,8 @@ class Client:
 
         for X, Y in dataset:
             print("Training on next dataset")
-            self.__request_model()
+            if self.sent:
+                self.__request_model()
             self.__train_model((X, Y))
             self.__send_model()
 
