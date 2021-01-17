@@ -24,12 +24,12 @@ def test(filename):
 
     X, Y = load_datasets(
         "../",
-        ["mnist-train-images.npy", "mnist-train-labels.npy"]
+        ["mnist-test-images.npy", "mnist-test-labels.npy"]
     )
 
-    pred = utility.predict(model, X[:50])
-    print(np.argmax(pred, axis=1), Y[:50])
-    print(sum(np.argmax(pred, axis=1) == Y[:50]) / Y[:50].shape[0])
+    pred = utility.predict(model, X)
+    print(np.argmax(pred, axis=1), Y)
+    print(sum(np.argmax(pred, axis=1) == Y) / Y.shape[0])
 
 if __name__ == "__main__":
     test('model')
