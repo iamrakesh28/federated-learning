@@ -7,6 +7,8 @@ communicate using HTTP (GET / POST) requests. For handling the HTTP requests at 
 Since the federated learning is used for the MNIST dataset classification, the clients train on their private MNIST datasets using tensorflow APIs.
 
 ## Run
+Make sure you have `Flask-API`, `Tensorflow` and `requests` packages installed in your Python 3.
+
 To run the application, first clone the repository and the download these MNIST training and test datasets from here (<a href="https://drive.google.com/drive/folders/12ri3Qo6XYj8eyaeRPp6rscnsfsZ7JwFi?usp=sharing"> Federated Learning </a>). Put these datasets at the root level. The directory will look similar to this:
 
 <p align="center">
