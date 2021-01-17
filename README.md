@@ -26,8 +26,8 @@ To run a client, from the top directory do the following:
 cd client
 python3 main.py
 ```
-The client will ask for `Client Id` and `Datasets`. You can provide any string for the Id as the server doesn't perform authenication on the client for now. </br>
-For the datasets, provide two space separated integers between 1 and 12 (inclusive) and first integer should be less than or equal to the second integer. There are 60,000 samples in the MNIST training set and `NUM_IMAGES_TRAIN` is set to 5,000. If you enter two valid integers l and r, the client will train on samples from (l - 1) x 5,000 to r x 5,000 (0-based indexing).
+The client will ask for `Client Id` and `Dataset Range`. You can provide any string for the Id as the server doesn't perform authenication on the client for now. </br>
+For the datasets, provide two space separated integers between `1` and `12` (inclusive) and first integer should be less than or equal to the second integer. There are `60,000` samples in the MNIST training set and `NUM_IMAGES_TRAIN` is set to `5,000`. If you enter two valid integers `l` and `r`, the client will train on samples from `(l - 1) x 5,000 to r x 5,000` (0-based indexing).
 
 <p align="center">
   <img src="https://github.com/iamrakesh28/federated-learning/blob/master/images/fed-learn-client.png">
@@ -41,6 +41,13 @@ For the datasets, provide two space separated integers between 1 and 12 (inclusi
   </br>
 </p>
 
+## Working
+### Client
+In each iteration, the client takes the `NUM_IMAGES_TRAIN` size samples and does the following steps:
+* Makes a request from the server to get the updated model weights. It makes `MAX_RETRY` atmost requests to the server. If the server fails (or the server is down) to send the correct data, the client continues to the next step with the previously updated weights. Between each two request, it waits randomly between `0` to `MAX_WAIT` (defined in `client/client.py`) seconds.
+* After the client has got the updated weights, it trains on the data and updates the model weights.
+* It tries to send the updated weights to the server. Similarly, as in the case of mmaking the request, it makes `MAX_RETRY` atmost requests to the server. If the client fails to send the data, the client continues to the next iteration and since the weights has not been sent, it skips the first step and continues with the training. Between each two request, it waits randomly between `0` to `MAX_WAIT` (defined in `client/client.py`) seconds.
+
 ## References
-[1] (https://en.wikipedia.org/wiki/Federated_learning)
+[1] (https://en.wikipedia.org/wiki/Federated_learning) </br>
 [2] (https://www.flaskapi.org/)
