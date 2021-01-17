@@ -2,7 +2,7 @@ import utility
 import helper
 import pickle
 from json import dumps, loads
-from threading import Lock
+from threading import Lock, Condition
 
 SAVE_MODEL = 2
 
@@ -19,14 +19,20 @@ class Server:
         self.filename = filename
         self.save = SAVE_MODEL
         self.logger = logger
+        self.readers = 0
+        self.read_write = Condition(self.lock)
 
     def __update(self, weights, datasets):
         """
         Updates the weight and dataset count
         It's thread safe
         """
-        self.lock.acquire()
-        
+        # acquire write lock
+        self.read_write.acquire()
+
+        while self.readers > 0:
+            self.read_write.wait()
+
         self.weights = utility.averageParam(
             (self.weights, self.datasets),
             (weights, datasets)
@@ -40,8 +46,9 @@ class Server:
             self.save = SAVE_MODEL
         else:
             self.save -= 1
-            
-        self.lock.release()
+
+        # release write lock
+        self.read_write.release()
 
         return
             
@@ -79,13 +86,24 @@ class Server:
     def read_weights(self):
         """
         """
-        self.lock.acquire()
+        # acquire read lock
+        self.read_write.acquire()
+        self.readers += 1
+        self.read_write.release()
+
         data = {
             'id' : self.server_id,
             'datasets' : self.datasets,
             'weights' : self.weight_send
         }
-        self.lock.release()
+
+        # release read lock
+        self.read_write.acquire()
+        self.readers -= 1
+
+        if self.readers == 0:
+            self.read_write.notify_all()
+        self.read_write.release()
                 
         return data
 
