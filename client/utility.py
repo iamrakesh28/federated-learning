@@ -6,7 +6,7 @@ from tensorflow.keras.metrics import SparseCategoricalAccuracy
 
 # Constants
 
-NUM_IMAGES_TRAIN = 50
+NUM_IMAGES_TRAIN = 5000
 NUM_CLASSES = 10
 IMAGE_SHAPE = (28, 28)
 
@@ -61,5 +61,5 @@ def trainOnData(model, trainData):
     model.fit(
         X,
         y,
-        epochs=1
+        epochs=20
     )
