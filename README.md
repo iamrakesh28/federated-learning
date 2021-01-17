@@ -26,7 +26,7 @@ To run a client, from the top directory do the following:
 cd client
 python3 main.py
 ```
-The client will ask for `Client Id` and `Dataset Range`. You can provide any string for the Id as the server doesn't perform authenication on the client for now. </br>
+The client will ask for `Client Id` and `Dataset Range`. You can provide any string for the Id as the server doesn't perform authentication on the client for now. </br>
 For the datasets, provide two space separated integers between `1` and `12` (inclusive) and first integer should be less than or equal to the second integer. There are `60,000` samples in the MNIST training set and `NUM_IMAGES_TRAIN` is set to `5,000`. If you enter two valid integers `l` and `r`, the client will train on samples from `(l - 1) x 5,000 to r x 5,000` (0-based indexing).
 
 <p align="center">
@@ -37,7 +37,7 @@ For the datasets, provide two space separated integers between `1` and `12` (inc
 ## Working Demo on 3 Clients
 <p align="center">
   <img src="https://github.com/iamrakesh28/federated-learning/blob/master/images/federated-v1.gif">
-  <a href=https://drive.google.com/file/d/12NgnlLGUwOsIooBpNUwluTVKVH2QfhA6/view?usp=sharing> Video </a>
+  See the video here: <a href=https://drive.google.com/file/d/12NgnlLGUwOsIooBpNUwluTVKVH2QfhA6/view?usp=sharing> Video </a>
   </br>
 </p>
 
