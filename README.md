@@ -52,7 +52,7 @@ In each iteration, the client takes the `NUM_IMAGES_TRAIN` size samples and does
 
 ### Server
 The server keeps running. For each new request, it spawns a new thread to handle the request. It accepts only GET and POST requests. There are two types of requests:
-1. Sending the updated model weights
+1. Sending the updated model weights to the clients
 2. Receiving the trained model weights from the clients
 
 Server does a weighted average of the received model weights from the clients. Clients also send the number of datasets on which their model has been trained in total. The server does the weighted average of their weights and the client weights and updates the weights at the server. If the server's model has been trained on `a` datasets and the client's model on `b` datasets, then weighted average is `(a x server_weights + b x client_weights) / (a + b)`. It's a hypothesis but works well in practice. The server saves the model weights after every `SAVE_MODEL` (defined in `server/server.py`) updates in `server/model` file.
@@ -60,7 +60,7 @@ Server does a weighted average of the received model weights from the clients. C
 Also, there could be multiple readers as well as writer threads at the server. In the version 1.0 of the application, it handles single read or write at a time. In current version, it can support multiple readers simultaneously. 
 
 ### Testing
-To test the model on the training set,
+To test the model trained across various clients on the training set,
 ```
 cd server && python3 test.py
 ```
